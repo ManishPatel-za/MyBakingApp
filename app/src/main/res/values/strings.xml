@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">My Baking App</string>
+    <string name="ingredient_quanitity">Quanitity:</string>
+    <string name="ingredient_measurement">Unit:</string>
+    <string name="appwidget_text">Please launch app to view ingredients</string>
+    <string name="add_widget">Add widget</string>
+</resources>
