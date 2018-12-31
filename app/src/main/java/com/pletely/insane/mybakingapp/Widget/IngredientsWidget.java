@@ -9,7 +9,7 @@ import android.content.Intent;
 import android.widget.RemoteViews;
 
 import com.pletely.insane.mybakingapp.DetailActivity;
-import com.pletely.insane.mybakingapp.MainActivity;
+
 import com.pletely.insane.mybakingapp.R;
 
 import java.util.ArrayList;
@@ -41,6 +41,7 @@ public class IngredientsWidget extends AppWidgetProvider {
         views.setRemoteAdapter(R.id.widget_grid_view, intent);
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
+
     }
 
     @Override

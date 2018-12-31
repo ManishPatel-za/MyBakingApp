@@ -22,7 +22,6 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveVideoTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
@@ -51,11 +50,18 @@ public class MediaFragment extends Fragment {
     private int currentPosition;
     private Handler handler;
     private BandwidthMeter bandwidthMeter;
+    private long currentVideoPos = 0;
+    private boolean playWhenReady = false;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_media_viewer, container, false);
         ButterKnife.bind(this, rootView);
+
+        if (savedInstanceState != null) {
+            currentVideoPos = savedInstanceState.getLong(KEY_SAVED_VIDEO_POSITION,0);
+            playWhenReady = savedInstanceState.getBoolean(KEY_SAVED_VIDEO_STATE, false);
+        }
 
         Bundle bundle = getArguments();
         if (bundle != null) {
@@ -102,7 +108,10 @@ public class MediaFragment extends Fragment {
             MediaSource mediaSource = new ExtractorMediaSource(videoUri, new DefaultDataSourceFactory(
                     getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
             exoPlayer.prepare(mediaSource);
-            exoPlayer.setPlayWhenReady(true);
+            exoPlayer.setPlayWhenReady(playWhenReady);
+            if (currentVideoPos>0) {
+                exoPlayer.seekTo(currentVideoPos);
+            }
         }
     }
 
@@ -138,5 +147,20 @@ public class MediaFragment extends Fragment {
     public void onStop() {
         super.onStop();
         releaseVideo(false);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if(exoPlayer!=null){
+            //save current position
+            long currentPos = exoPlayer.getCurrentPosition();
+            outState.putLong(KEY_SAVED_VIDEO_POSITION, currentPos);
+
+            //save state of player
+            boolean isPlayWhenReady = exoPlayer.getPlayWhenReady();
+            outState.putBoolean(KEY_SAVED_VIDEO_STATE, isPlayWhenReady);
+        }
     }
 }

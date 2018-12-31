@@ -2,9 +2,12 @@ package com.pletely.insane.mybakingapp;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.constraint.Group;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -41,11 +44,8 @@ public class DetailActivity extends AppCompatActivity implements StepsRecyclerAd
     @BindView(R.id.media_group)
     Group mediaGroupContainer;
 
-    @BindView(R.id.nav_left)
-    ImageView navLeft;
-
-    @BindView(R.id.nav_right)
-    ImageView navRight;
+    private ImageView navLeft;
+    private ImageView navRight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +53,14 @@ public class DetailActivity extends AppCompatActivity implements StepsRecyclerAd
         setContentView(R.layout.activity_detail);
         ButterKnife.bind(this);
 
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(mToolbar);
+
+        getSupportActionBar().setTitle("Recipe Details");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        navRight = (ImageView) findViewById(R.id.nav_right);
+        navLeft = (ImageView) findViewById(R.id.nav_left);
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -68,6 +76,18 @@ public class DetailActivity extends AppCompatActivity implements StepsRecyclerAd
             stepsBundle.putParcelableArrayList(KEY_STEPS, steps);
         }
 
+        if(savedInstanceState!= null) {
+            boolean mediaState = savedInstanceState.getBoolean(KEY_MEDIAGROUP_VISIBLE,false);
+            if(mediaState) {
+                if(mTwoPane) {
+
+                } else {
+                    mediaGroupContainer.setVisibility(View.VISIBLE);
+                    detailsGroup.setVisibility(View.GONE);
+                }
+            }
+        }
+
         //Larger screen mode
         if (findViewById(R.id.two_pane) != null) {
             mTwoPane = true;
@@ -75,10 +95,14 @@ public class DetailActivity extends AppCompatActivity implements StepsRecyclerAd
             FragmentManager largerFragmentManager = getSupportFragmentManager();
             IngredientsFragment ingredientsFragment = new IngredientsFragment();
             DirectionsFragment directionsFragment = new DirectionsFragment();
+
+            Bundle bundle = new Bundle();
             MediaFragment mediaFragment = new MediaFragment();
+
 
             ingredientsFragment.setArguments(ingredientsBundle);
             directionsFragment.setArguments(stepsBundle);
+
 
             largerFragmentManager.beginTransaction()
                     .add(R.id.ingredients_container, ingredientsFragment)
@@ -128,7 +152,6 @@ public class DetailActivity extends AppCompatActivity implements StepsRecyclerAd
                 }
             });
         }
-
     }
 
     @Override
@@ -159,6 +182,7 @@ public class DetailActivity extends AppCompatActivity implements StepsRecyclerAd
         } else {
 
             mediaGroupContainer.setVisibility(View.VISIBLE);
+            detailsGroup.setVisibility(View.GONE);
             TextView textView = (TextView) findViewById(R.id.step_description_text);
             textView.setText(step.getDescription());
             fragmentManager.beginTransaction()
@@ -170,6 +194,34 @@ public class DetailActivity extends AppCompatActivity implements StepsRecyclerAd
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+    }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mediaGroupContainer.getVisibility() == View.VISIBLE) {
+            outState.putBoolean(KEY_MEDIAGROUP_VISIBLE, true);
+        } else if (detailsGroup.getVisibility() == View.VISIBLE){
+            outState.putBoolean(KEY_MEDIAGROUP_VISIBLE, false);
+        }
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            if (mTwoPane) {
+                if (mediaGroupContainer.getVisibility() == View.VISIBLE) {
+                    mediaGroupContainer.setVisibility(View.GONE);
+                    detailsGroup.setVisibility(View.VISIBLE);
+
+                } else if (detailsGroup.getVisibility() == View.VISIBLE) {
+                    finish();
+                }
+            } else {
+                finish();
+            }
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
